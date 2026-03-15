@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>SpendWise — Student Expense Tracker</title>
+  <meta name="description" content="SpendWise — Track personal expenses and split bills with roommates. Built for students."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     AUTH SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="screen-auth" class="screen active">
+  <div class="auth-logo">
+    <span class="auth-logo-icon">💸</span>
+    <span class="auth-logo-name">Spend<span>Wise</span></span>
+    <span class="auth-logo-sub">Track smarter. Split easier.</span>
+  </div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button id="tab-login" class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
+      <button id="tab-register" class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+    </div>
+
+    <form id="form-login" class="auth-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input id="login-email" type="email" placeholder="you@college.edu" required autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="login-password" type="password" placeholder="Password" required autocomplete="current-password"/>
+      </div>
+      <div id="login-error" class="form-error hidden"></div>
+      <button type="submit" class="btn-green" id="btn-sign-in">SIGN IN</button>
+      <p class="auth-demo-hint">Demo: test@demo.com / password123</p>
+    </form>
+
+    <form id="form-register" class="auth-form hidden" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input id="reg-name" type="text" placeholder="Rahul Sharma" required autocomplete="name"/>
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input id="reg-email" type="email" placeholder="rahul@college.edu" required autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="reg-password" type="password" placeholder="Min 6 characters" required autocomplete="new-password"/>
+      </div>
+      <div id="register-error" class="form-error hidden"></div>
+      <button type="submit" class="btn-green" id="btn-create-account">CREATE ACCOUNT</button>
+    </form>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     APP WRAPPER
+════════════════════════════════════════════════════════ -->
+<div id="app" class="hidden">
+
+  <!-- ── DASHBOARD ──────────────────────────────────────── -->
+  <div id="screen-dashboard" class="screen app-screen active">
+    <div class="screen-scroll">
+      <!-- Header -->
+      <div class="dash-top">
+        <div>
+          <span class="dash-welcome">Welcome back,</span>
+          <h1 id="dash-name" class="dash-name">Loading...</h1>
+        </div>
+        <button class="dash-avatar" onclick="navigateTo('profile')" id="dash-av-btn">A</button>
+      </div>
+
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="balance-card-label">CURRENT BALANCE</div>
+        <div id="dash-balance" class="balance-card-amount">₹0.00</div>
+        <div class="balance-card-visa">VISA</div>
+        <div class="balance-card-dots">•••• 4421</div>
+        <div class="balance-card-stats">
+          <div class="balance-stat">
+            <span class="balance-stat-label">Spent Today</span>
+            <span id="dash-today" class="balance-stat-val">₹0.00</span>
+          </div>
+          <div class="balance-stat">
+            <span class="balance-stat-label">Monthly Budget</span>
+            <span id="dash-budget" class="balance-stat-val">₹5,000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="navigateTo('add-expense')" id="qb-add">
+          <span class="quick-btn-icon">➕</span>
+          <span class="quick-btn-label">Add</span>
+        </button>
+        <button class="quick-btn" onclick="navigateTo('groups')" id="qb-groups">
+          <span class="quick-btn-icon">👥</span>
+          <span class="quick-btn-label">Groups</span>
+        </button>
+        <button class="quick-btn" onclick="navigateTo('analytics')" id="qb-analytics">
+          <span class="quick-btn-icon">📊</span>
+          <span class="quick-btn-label">Analytics</span>
+        </button>
+        <button class="quick-btn" onclick="navigateTo('split')" id="qb-split">
+          <span class="quick-btn-icon">✂️</span>
+          <span class="quick-btn-label">Split</span>
+        </button>
+      </div>
+
+      <!-- Spending Analysis -->
+      <div class="s-card">
+        <div class="s-header">
+          <span class="s-title">Spending Analysis</span>
+          <span class="s-badge" id="dash-month-badge">This Month</span>
+        </div>
+        <div id="dash-donut" class="donut-wrap">
+          <div class="donut-chart" id="donut-canvas"></div>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="s-card">
+        <div class="s-header">
+          <span class="s-title">Recent Transactions</span>
+          <button class="see-all" onclick="navigateTo('analytics')" id="btn-see-all-tx">View All</button>
+        </div>
+        <div id="dash-tx-list" class="tx-list">
+          <p class="empty-msg">No transactions yet. Add your first! 💸</p>
+        </div>
+      </div>
+
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── ADD EXPENSE ─────────────────────────────────────── -->
+  <div id="screen-add-expense" class="screen app-screen hidden">
+    <div class="screen-scroll">
+      <div class="page-header">
+        <button class="back-btn" onclick="navigateTo('dashboard')" id="btn-back-add">←</button>
+        <span class="page-title">Add Expense</span>
+        <div style="width:36px"></div>
+      </div>
+
+      <form id="form-add-expense" onsubmit="handleAddExpense(event)">
+        <!-- Amount -->
+        <div style="position:relative">
+          <span class="amount-section-label">Total Amount</span>
+          <div class="amount-section">
+            <span class="amt-currency">₹</span>
+            <input id="exp-amount" class="amt-input" type="number" placeholder="0.00"
+                   min="0.01" step="0.01" required inputmode="decimal"/>
+          </div>
+        </div>
+
+        <!-- Category -->
+        <div class="form-section">
+          <span class="form-label">Category</span>
+          <div id="cat-row" class="cat-row"></div>
+          <input type="hidden" id="exp-cat" required/>
+        </div>
+
+        <!-- Date -->
+        <div class="form-section">
+          <span class="form-label">Date</span>
+          <div class="date-wrap">
+            <span class="date-icon">📅</span>
+            <input id="exp-date" type="date" class="form-input" required/>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-section">
+          <span class="form-label">Notes <span style="color:var(--text-3);font-weight:400;">(Optional)</span></span>
+          <textarea id="exp-notes" class="form-input form-textarea" placeholder="What was this for?"></textarea>
+        </div>
+
+        <div id="add-exp-err" class="form-error hidden" style="margin:0 20px"></div>
+        <div class="save-btn-wrap">
+          <button type="submit" class="btn-green" id="btn-save-expense">SAVE EXPENSE</button>
+        </div>
+      </form>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── ANALYTICS ──────────────────────────────────────── -->
+  <div id="screen-analytics" class="screen app-screen hidden">
+    <div class="screen-scroll">
+      <div class="analytics-header">
+        <div class="analytics-title-row">
+          <div>
+            <h2 class="analytics-title">Analytics</h2>
+            <p class="analytics-sub">Your spending habits</p>
+          </div>
+          <button class="notif-btn" id="btn-analytics-notif">🔔</button>
+        </div>
+      </div>
+
+      <!-- Period toggle -->
+      <div class="period-pills">
+        <button id="pill-weekly" class="period-pill active" onclick="setAnalyticsPeriod('weekly')">Weekly</button>
+        <button id="pill-monthly" class="period-pill" onclick="setAnalyticsPeriod('monthly')">Monthly</button>
+        <button id="pill-yearly" class="period-pill" onclick="setAnalyticsPeriod('yearly')">Yearly</button>
+      </div>
+
+      <!-- Total card -->
+      <div class="analytics-total-card">
+        <div class="analytics-total-label">TOTAL SPENT</div>
+        <div id="an-total" class="analytics-total-amount">₹0.00</div>
+        <div id="an-trend-badge" class="analytics-total-badge">↑ 0%</div>
+      </div>
+
+      <!-- Bar chart -->
+      <div class="bar-chart-wrap">
+        <div id="bar-chart" class="bar-chart"></div>
+      </div>
+
+      <!-- Category Breakdown -->
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header">
+          <span class="s-title">Category Breakdown</span>
+          <button class="see-all" id="btn-see-all-cats">SEE ALL</button>
+        </div>
+        <div id="an-cat-list" class="cat-breakdown-list">
+          <p class="empty-msg">No data yet.</p>
+        </div>
+      </div>
+
+      <!-- Spending Trend -->
+      <div class="trend-line-wrap">
+        <div class="s-header" style="margin-bottom:0">
+          <span class="s-title">Spending Trend</span>
+        </div>
+        <div class="trend-svg-wrap">
+          <svg id="trend-svg" viewBox="0 0 300 80" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="trend-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#00C853" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#00C853" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path id="trend-area" fill="url(#trend-grad)" d="M0,80 L300,80 Z"/>
+            <path id="trend-line" fill="none" stroke="#00C853" stroke-width="2.5" d=""/>
+          </svg>
+        </div>
+        <div id="trend-x-labels" style="display:flex;justify-content:space-between;padding:0 4px;">
+        </div>
+      </div>
+
+      <!-- All Transactions -->
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header">
+          <span class="s-title">All Transactions</span>
+        </div>
+        <div id="an-tx-list" class="tx-list">
+          <p class="empty-msg">No transactions yet.</p>
+        </div>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── GROUPS ─────────────────────────────────────────── -->
+  <div id="screen-groups" class="screen app-screen hidden">
+    <div class="screen-scroll">
+      <div class="page-header">
+        <button class="back-btn" onclick="navigateTo('dashboard')" id="btn-back-groups">←</button>
+        <span class="page-title">Roommate Groups</span>
+        <button class="icon-btn" onclick="showModal('modal-create-group')" id="btn-new-group" title="New Group">+</button>
+      </div>
+      <div id="groups-list" style="padding:0 20px">
+        <!-- rendered by JS -->
+      </div>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── GROUP DETAIL ───────────────────────────────────── -->
+  <div id="screen-group-detail" class="screen app-screen hidden">
+    <div class="screen-scroll">
+      <div class="page-header">
+        <button class="back-btn" onclick="navigateTo('groups')" id="btn-back-gd">←</button>
+        <span id="gd-title" class="page-title">Group</span>
+        <div style="width:36px"></div>
+      </div>
+
+      <div class="s-card">
+        <div class="s-header">
+          <span class="s-title">Members</span>
+          <button class="see-all" onclick="showModal('modal-invite')" id="btn-invite">+ Invite</button>
+        </div>
+        <div id="gd-members" class="members-list"></div>
+      </div>
+
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header"><span class="s-title">Balances</span></div>
+        <div id="gd-balances">
+          <p class="empty-msg">All settled up! 🎉</p>
+        </div>
+      </div>
+
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header">
+          <span class="s-title">Shared Expenses</span>
+          <button class="see-all" onclick="navigateTo('split')" id="btn-add-split-gd">+ Add</button>
+        </div>
+        <div id="gd-expenses" class="tx-list">
+          <p class="empty-msg">No shared expenses yet.</p>
+        </div>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── SPLIT EXPENSE ──────────────────────────────────── -->
+  <div id="screen-split" class="screen app-screen hidden">
+    <div class="screen-scroll">
+      <div class="page-header">
+        <button class="back-btn" onclick="navigateTo('dashboard')" id="btn-back-split">←</button>
+        <span class="page-title">Split Expense</span>
+        <div style="width:36px"></div>
+      </div>
+
+      <form id="form-split" onsubmit="handleSplitExpense(event)">
+        <div class="form-section">
+          <span class="form-label">Group</span>
+          <select id="split-group" class="form-input" onchange="onSplitGroupChange()" required>
+            <option value="">Select a group…</option>
+          </select>
+        </div>
+        <div class="form-section">
+          <span class="form-label">Expense Name</span>
+          <input id="split-notes" type="text" class="form-input" placeholder="e.g. Groceries" required/>
+        </div>
+        <div class="form-section">
+          <span class="form-label">Total Amount (₹)</span>
+          <input id="split-amount" type="number" class="form-input" placeholder="0.00"
+                 min="0.01" step="0.01" required inputmode="decimal" oninput="updateSplitPreview()"/>
+        </div>
+        <div class="form-section">
+          <span class="form-label">Category</span>
+          <div id="split-cat-row" class="cat-row"></div>
+          <input type="hidden" id="split-cat" value="food"/>
+        </div>
+        <div class="form-section">
+          <span class="form-label">Paid By</span>
+          <select id="split-paid-by" class="form-input" onchange="updateSplitPreview()" required>
+            <option value="">Select payer…</option>
+          </select>
+        </div>
+        <div class="form-section">
+          <span class="form-label">Date</span>
+          <div class="date-wrap">
+            <span class="date-icon">📅</span>
+            <input id="split-date" type="date" class="form-input" required/>
+          </div>
+        </div>
+        <div class="form-section">
+          <span class="form-label">Split Between</span>
+          <div id="split-members" style="display:flex;flex-direction:column;gap:6px;">
+            <p class="empty-msg">Select a group first</p>
+          </div>
+        </div>
+
+        <div id="split-preview" class="split-preview hidden">
+          <div class="split-preview-title">Split Preview</div>
+          <div id="split-preview-rows"></div>
+        </div>
+
+        <div id="split-err" class="form-error hidden" style="margin:0 20px"></div>
+        <div class="save-btn-wrap">
+          <button type="submit" class="btn-green" id="btn-save-split">CREATE SPLIT</button>
+        </div>
+      </form>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── SETTLEMENTS ────────────────────────────────────── -->
+  <div id="screen-settlements" class="screen app-screen hidden">
+    <div class="screen-scroll">
+      <div class="page-header">
+        <button class="back-btn" onclick="navigateTo('profile')" id="btn-back-settle">←</button>
+        <span class="page-title">Settlements</span>
+        <div style="width:36px"></div>
+      </div>
+
+      <div class="s-card">
+        <div class="s-header"><span class="s-title">You Owe</span></div>
+        <div id="s-you-owe"><p class="empty-msg">Nothing to pay! 🎉</p></div>
+      </div>
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header"><span class="s-title">Owed to You</span></div>
+        <div id="s-owed-you"><p class="empty-msg">No one owes you.</p></div>
+      </div>
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header"><span class="s-title">History</span></div>
+        <div id="s-history" class="tx-list"><p class="empty-msg">No history yet.</p></div>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── PROFILE ────────────────────────────────────────── -->
+  <div id="screen-profile" class="screen app-screen hidden">
+    <div class="screen-scroll">
+      <div class="profile-hero">
+        <div class="profile-av-large" id="profile-av">A</div>
+        <div id="profile-dname" class="profile-name">—</div>
+        <div id="profile-demail" class="profile-email">—</div>
+      </div>
+
+      <div class="profile-stats">
+        <div class="profile-stat">
+          <span id="pstat-count" class="profile-stat-val">0</span>
+          <span class="profile-stat-lbl">Expenses</span>
+        </div>
+        <div class="profile-stat">
+          <span id="pstat-spent" class="profile-stat-val">₹0</span>
+          <span class="profile-stat-lbl">Total Spent</span>
+        </div>
+        <div class="profile-stat">
+          <span id="pstat-groups" class="profile-stat-val">0</span>
+          <span class="profile-stat-lbl">Groups</span>
+        </div>
+      </div>
+
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header" style="margin-bottom:14px;"><span class="s-title">Edit Profile</span></div>
+        <form id="form-profile" onsubmit="handleUpdateProfile(event)">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>Display Name</label>
+            <input id="prof-name-input" type="text" class="form-input" placeholder="Your name"/>
+          </div>
+          <div id="prof-err" class="form-error hidden" style="margin-bottom:10px;"></div>
+          <div id="prof-ok" class="form-success hidden" style="margin-bottom:10px;">Profile updated!</div>
+          <button type="submit" class="btn-green" id="btn-save-profile">SAVE CHANGES</button>
+        </form>
+      </div>
+
+      <div class="s-card" style="margin-top:14px;">
+        <div class="s-header" style="margin-bottom:0;"><span class="s-title">Settings</span></div>
+        <button class="settings-row" onclick="navigateTo('settlements')" id="btn-open-settlements">
+          <span>💰 &nbsp;Settlements</span><span class="settings-arr">›</span>
+        </button>
+        <button class="settings-row" onclick="exportData()" id="btn-export">
+          <span>📥 &nbsp;Export to CSV</span><span class="settings-arr">›</span>
+        </button>
+        <button class="settings-row danger" onclick="handleLogout()" id="btn-logout">
+          <span>🚪 &nbsp;Sign Out</span><span class="settings-arr">›</span>
+        </button>
+      </div>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- ── BOTTOM NAV ──────────────────────────────────────── -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="nav-btn active" onclick="navigateTo('dashboard')" id="nav-home">
+      <span class="nav-btn-icon">🏠</span>
+      <span class="nav-lbl">Home</span>
+    </button>
+    <button class="nav-btn" onclick="navigateTo('analytics')" id="nav-analytics">
+      <span class="nav-btn-icon">📊</span>
+      <span class="nav-lbl">Analytics</span>
+    </button>
+    <button class="nav-btn nav-fab" onclick="navigateTo('add-expense')" id="nav-add">＋</button>
+    <button class="nav-btn" onclick="navigateTo('groups')" id="nav-groups">
+      <span class="nav-btn-icon">👥</span>
+      <span class="nav-lbl">Groups</span>
+    </button>
+    <button class="nav-btn" onclick="navigateTo('profile')" id="nav-profile">
+      <span class="nav-btn-icon">👤</span>
+      <span class="nav-lbl">Profile</span>
+    </button>
+  </nav>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay hidden" onclick="closeAllModals()"></div>
+
+<div id="modal-create-group" class="modal hidden">
+  <div class="modal-header">
+    <span class="modal-title">Create Group</span>
+    <button class="modal-close" onclick="closeAllModals()" id="btn-close-cg">✕</button>
+  </div>
+  <form onsubmit="handleCreateGroup(event)">
+    <div class="form-group">
+      <label>Group Name</label>
+      <input id="new-group-name" type="text" placeholder="e.g. Flat 302" required/>
+    </div>
+    <div id="cg-err" class="form-error hidden"></div>
+    <button type="submit" class="btn-green" id="btn-submit-group">CREATE GROUP</button>
+  </form>
+</div>
+
+<div id="modal-invite" class="modal hidden">
+  <div class="modal-header">
+    <span class="modal-title">Invite Member</span>
+    <button class="modal-close" onclick="closeAllModals()" id="btn-close-inv">✕</button>
+  </div>
+  <form onsubmit="handleInviteMember(event)">
+    <div class="form-group">
+      <label>Member's Email</label>
+      <input id="invite-email" type="email" placeholder="roommate@college.edu" required/>
+    </div>
+    <div id="inv-err" class="form-error hidden"></div>
+    <button type="submit" class="btn-green" id="btn-submit-invite">INVITE</button>
+  </form>
+</div>
+
+<div id="modal-settle" class="modal hidden">
+  <div class="modal-header">
+    <span class="modal-title">Settle Debt</span>
+    <button class="modal-close" onclick="closeAllModals()" id="btn-close-settle">✕</button>
+  </div>
+  <div id="settle-info" class="settle-info-box"></div>
+  <div id="settle-err" class="form-error hidden"></div>
+  <button class="btn-green" id="btn-confirm-settle" onclick="confirmSettle()">MARK AS PAID ✓</button>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

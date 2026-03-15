@@ -1,0 +1,23 @@
+{
+  "name": "spendwise",
+  "version": "1.0.0",
+  "description": "SpendWise — Student expense tracker and roommate bill splitter",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve . --single --listen 3000",
+    "start": "npx serve . --single",
+    "preview": "npx serve . --single --listen 5000"
+  },
+  "keywords": [
+    "expense-tracker",
+    "student",
+    "roommate",
+    "bill-splitting",
+    "pwa"
+  ],
+  "author": "abhipal2219-tech",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.3"
+  }
+}
